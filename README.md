@@ -42,66 +42,66 @@ For the `teams` parameters, only put the team's ID. You can copy and paste your 
 
 | Team Name            | ID     |
 |----------------------|--------|
-| `Air Force`          | `2005` |
-| `Alabama Huntsville` | `2008` |
-| `Alaska Anchorage`   | `1`    |
-| `Alaska`             | `298`  |
-| `American Intl`      | `2022` |
-| `Arizona St.`        | `9`    |
-| `Army`               | `349`  |
-| `Bemidji St.`        | `132`  |
-| `Bentley`            | `2060` |
-| `Boston College`     | `103`  |
-| `Boston University`  | `104`  |
-| `Bowling Green`      | `189`  |
-| `Brown`              | `225`  |
-| `Canisius`           | `2099` |
-| `Clarkson`           | `2137` |
-| `Colgate`            | `2142` |
-| `Colorado College`   | `2144` |
-| `Connecticut`        | `41`   |
-| `Cornell`            | `172`  |
-| `Dartmouth`          | `159`  |
-| `Denver`             | `2172` |
-| `Ferris St.`         | `2222` |
-| `Harvard`            | `108`  |
-| `Holy Cross`         | `107`  |
-| `Lake Superior`      | `285`  |
-| `Maine`              | `311`  |
-| `Massachusetts`      | `113`  |
-| `Mercyhurst`         | `2385` |
-| `Merrimack`          | `2771` |
-| `Miami`              | `193`  |
-| `Michigan St.`       | `127`  |
-| `Michigan Tech`      | `2392` |
-| `Michigan`           | `130`  |
-| `Minnesota Duluth`   | `134`  |
-| `Minnesota St.`      | `2364` |
-| `Minnesota`          | `135`  |
-| `Nebraska Omaha`     | `2437` |
-| `New Hampshire`      | `160`  |
-| `Niagara`            | `315`  |
-| `North Dakota`       | `155`  |
-| `Northeastern`       | `111`  |
-| `Northern Michigan`  | `128`  |
-| `Notre Dame`         | `87`   |
-| `Ohio St.`           | `194`  |
-| `Penn State`         | `213`  |
-| `Princeton`          | `163`  |
-| `Providence`         | `2507` |
-| `Quinnipiac`         | `2514` |
-| `RIT`                | `178`  |
-| `Robert Morris`      | `2523` |
-| `RPI`                | `2528` |
-| `Sacred Heart`       | `2529` |
-| `St. Cloud St.`      | `2594` |
-| `St. Lawrence`       | `2779` |
-| `UMass Lowell`       | `2349` |
-| `Union NY`           | `2785` |
-| `Vermont`            | `261`  |
-| `Western Michigan`   | `2711` |
-| `Wisconsin`          | `275`  |
-| `Yale`               | `43`   |
+| Air Force          | `2005` |
+| Alabama Huntsville | `2008` |
+| Alaska Anchorage   | `1`    |
+| Alaska             | `298`  |
+| American Intl      | `2022` |
+| Arizona St.        | `9`    |
+| Army               | `349`  |
+| Bemidji St.        | `132`  |
+| Bentley            | `2060` |
+| Boston College     | `103`  |
+| Boston University  | `104`  |
+| Bowling Green      | `189`  |
+| Brown              | `225`  |
+| Canisius           | `2099` |
+| Clarkson           | `2137` |
+| Colgate            | `2142` |
+| Colorado College   | `2144` |
+| Connecticut        | `41`   |
+| Cornell            | `172`  |
+| Dartmouth          | `159`  |
+| Denver             | `2172` |
+| Ferris St.         | `2222` |
+| Harvard            | `108`  |
+| Holy Cross         | `107`  |
+| Lake Superior      | `285`  |
+| Maine              | `311`  |
+| Massachusetts      | `113`  |
+| Mercyhurst         | `2385` |
+| Merrimack          | `2771` |
+| Miami              | `193`  |
+| Michigan St.       | `127`  |
+| Michigan Tech      | `2392` |
+| Michigan           | `130`  |
+| Minnesota Duluth   | `134`  |
+| Minnesota St.      | `2364` |
+| Minnesota          | `135`  |
+| Nebraska Omaha     | `2437` |
+| New Hampshire      | `160`  |
+| Niagara            | `315`  |
+| North Dakota       | `155`  |
+| Northeastern       | `111`  |
+| Northern Michigan  | `128`  |
+| Notre Dame         | `87`   |
+| Ohio St.           | `194`  |
+| Penn State         | `213`  |
+| Princeton          | `163`  |
+| Providence         | `2507` |
+| Quinnipiac         | `2514` |
+| RIT                | `178`  |
+| Robert Morris      | `2523` |
+| RPI                | `2528` |
+| Sacred Heart       | `2529` |
+| St. Cloud St.      | `2594` |
+| St. Lawrence       | `2779` |
+| UMass Lowell       | `2349` |
+| Union NY           | `2785` |
+| Vermont            | `261`  |
+| Western Michigan   | `2711` |
+| Wisconsin          | `275`  |
+| Yale               | `43`   |
 
 ## Shout-out
 
