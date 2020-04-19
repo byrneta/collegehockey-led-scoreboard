@@ -38,7 +38,7 @@ The goal animations can be set for both teams of just the preferred teams.
 | `pref_team_only` | Bool | `true`, `false` | self explanatory |
 
 ### Teams
-For the `teams` parameters, only put the team's ID. You can copy and paste your team's name from this table.
+For the `teams` parameters, only put the team's ID. You can copy and paste your team's ID from this table.
 
 | Team Name            | ID     |
 |----------------------|--------|
