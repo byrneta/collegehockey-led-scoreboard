@@ -4,7 +4,7 @@
 """
 from PIL import Image, ImageFont, ImageDraw, ImageOps
 from rgbmatrix import graphics
-import nhl_api
+import ncaa_api
 from data.scoreboard import Scoreboard
 from time import sleep
 from utils import convert_date_format, get_file

@@ -1,11 +1,8 @@
 """
 A Board is simply a display object with specific parameters made to be shown on screen.
-    TODO: Make the board system customizable so that all the user needs to do is paste a board file and modify the
-        config file to add the custom board.
 """
 import debug
 from boards.scoreticker import Scoreticker
-from boards.standings import Standings
 from boards.team_summary import TeamSummary
 from boards.clock import Clock
 from time import sleep
@@ -13,7 +10,6 @@ from time import sleep
 
 class Boards:
     def __init__(self):
-        # self.standings_board = Standings(config, matrix)
         pass
 
     # Board handler for Off day state
@@ -66,9 +62,6 @@ class Boards:
 
     def scoreticker(self, data, matrix):
         Scoreticker(data, matrix).render()
-
-    def standings(self, data, matrix):
-        Standings(data, matrix).render()
 
     def team_summary(self, data, matrix):
         TeamSummary(data, matrix).render()

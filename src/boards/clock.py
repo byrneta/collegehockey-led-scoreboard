@@ -19,7 +19,7 @@ class Clock:
         if not self.duration:
             self.duration = data.config.clock_board_duration
 
-        # Initialize he clock
+        # Initialize the clock
         self.clock_size = self.font_large.getsize(self.time.strftime(self.time_format))
         self.clock_width = self.clock_size[0]
         self.time_align = center_text(self.clock_width, 32)
