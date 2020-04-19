@@ -6,7 +6,7 @@ import debug
 BASE_URL = "http://site.api.espn.com/apis/site/v2/sports/hockey/mens-college-hockey/"
 STATUS_URL = BASE_URL + 'scoreboard'
 
-#SCHEDULE_URL = BASE_URL + 'undefined'
+SCHEDULE_URL = BASE_URL + 'teams/{0}/schedule' 
 #TEAM_URL = 'undefined'.format(BASE_URL)
 #OVERVIEW_URL = BASE_URL + 'undefined'
 #CURRENT_SEASON_URL = BASE_URL + 'undefined'

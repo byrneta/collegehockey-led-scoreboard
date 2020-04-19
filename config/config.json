@@ -6,7 +6,7 @@
 		"end_of_day": "12:00",
 		"live_game_refresh_rate": 15,
 		"teams": [
-			"Avalanche"
+			"193"
 		]
 	},
 
@@ -18,13 +18,11 @@
 		"off_day": [
 			"team_summary",
 			"scoreticker",
-			"standings",
 			"clock"
 		],
 		"scheduled": [
 			"team_summary",
 			"scoreticker",
-			"standings",
 			"clock"
 		],
 		"intermission": [
@@ -32,7 +30,6 @@
 		],
 		"post_game": [
 			"scoreticker",
-			"standings",
 			"team_summary",
 			"clock"
 		]
@@ -42,12 +39,6 @@
 		"scoreticker": {
 			"preferred_teams_only": false,
 			"rotation_rate": 5
-		},
-		"standings": {
-			"preferred_standings_only": true,
-			"standing_type": "wild_card",
-			"divisions": "central",
-			"conference": "western"
 		},
 		"clock": {
 			"duration": 60,
