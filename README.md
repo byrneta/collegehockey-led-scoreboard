@@ -1,13 +1,13 @@
 # Raspberry Pi LED Matrix NCAA Men's Hockey Scoreboard
 
-Work in progress fork of the awesome [rpi-led-nhl-scoreboard](https://github.com/gidger/rpi-led-nhl-scoreboard) which was inspired by [nhl-led-scoreboard](https://github.com/riffnshred/nhl-led-scoreboard).
+Forked from awesome work from [rpi-led-nhl-scoreboard](https://github.com/gidger/rpi-led-nhl-scoreboard) which was inspired by [nhl-led-scoreboard](https://github.com/riffnshred/nhl-led-scoreboard).
 
-Display live NCAA Men's Ice Hockey game scores, start times, etc. on a LED matrix driven by a Raspberry Pi. Makes use of the unofficial NCAA API for all game information. Displays the current day's games unless it is before 12:00 PM local time, when it will display the previous night's outcomes.
+Display live NCAA Men's Ice Hockey game scores, start times, etc. on a LED matrix driven by a Raspberry Pi. Makes use of the [NCAA API](https://ncaa-api.henrygd.me/openapi#description/introduction) for all game information. Displays the current day's games unless it is before 12:00 PM local time, when it will display the previous night's outcomes.
+
+On days with no games, the scoreboard will display your favorite team's record and upcoming game, as well as the current NPI poll.
 
 ![Example](https://github.com/byrneta/collegehockey-led-scoreboard/blob/main/examples/scoreboard.gif)
 
-## To-Do
-1. Add logic to display upcoming day's games if there are no games on a given day
 
 ## Notes
 1. Division II/III/other exhibition opponents will appear as the NCAA logo
@@ -108,6 +108,18 @@ These instructions assume some basic knowledge of Unix and how to edit files via
     cd ~/collegehockey-led-scoreboard
 
     pip3 install -r requirements.txt
+    ```
+
+15. Set your favorite team. Near the bottom of `collegehockey-led-scoreboard.py`, in the `__main__` block, three constants control which team gets its own board and highlight in the rankings scroll:
+
+    ```bash
+    nano ~/collegehockey-led-scoreboard/collegehockey-led-scoreboard.py
+    ``` 
+
+    ```python
+    FAVORITE_TEAM_ABBR = "MIA OH"        # char6 code, see getTeamData()
+    FAVORITE_TEAM_SHORT = "MIA"          # short display abbreviation
+    FAVORITE_TEAM_SCHOOL = "Miami (OH)"  # exact "School" name from the rankings API
     ```
 
 ## Auto Startup
@@ -229,3 +241,144 @@ Supervisor is a Process Control System. Once installed and configured it will ru
     ```
     sudo reboot
     ```
+
+# Running the Scoreboard Locally in the Emulator
+
+This is the fastest way to try out or develop the scoreboard on a regular
+computer (Mac, Linux, or Windows/WSL) -- no Raspberry Pi or LED matrix
+hardware required. It uses [RGBMatrixEmulator](https://github.com/ty-porter/RGBMatrixEmulator),
+which stands in for the real `rgbmatrix` driver and renders the display in
+your terminal or a browser tab instead.
+
+## Prerequisites
+
+- Python 3.9 or later
+- `git`
+- `pip`
+
+## 1. Clone the repository
+
+```bash
+git clone https://github.com/byrneta/collegehockey-led-scoreboard.git
+cd collegehockey-led-scoreboard
+```
+
+You do *not* need `--recursive` here -- the `submodules/rpi-rgb-led-matrix`
+submodule only matters for building the real hardware driver on a Raspberry
+Pi (see the main [README.md](README.md)), and the emulator path never
+touches it.
+
+## 2. Create and activate a virtual environment
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+```
+
+## 3. Install dependencies
+
+```bash
+pip install -r requirements.txt
+pip install RGBMatrixEmulator
+```
+
+`RGBMatrixEmulator` is intentionally left out of `requirements.txt` -- it's
+a local-development-only stand-in for the real `rgbmatrix` package, which
+is never installed via pip (see the comment at the top of
+`requirements.txt`).
+
+## 4. Make sure `emulator_config.json` exists
+
+The repo root should have an `emulator_config.json` file that configures how
+the emulator renders the display. If it's missing (check with
+`ls emulator_config.json`), create it with this content:
+
+```json
+{
+    "pixel_outline": 0,
+    "pixel_size": 16,
+    "pixel_style": "square",
+    "pixel_glow": 6,
+    "display_adapter": "terminal",
+    "allow_adapter_fallback": true,
+    "icon_path": null,
+    "emulator_title": null,
+    "suppress_font_warnings": false,
+    "browser": {
+        "_comment": "For use with the browser adapter only.",
+        "port": 8888,
+        "target_fps": 60,
+        "fps_display": false,
+        "quality": 70,
+        "image_border": true,
+        "debug_text": false,
+        "image_format": "JPEG",
+        "open_immediately": false
+    },
+    "log_level": "info"
+}
+```
+
+## 5. Run it
+
+```bash
+python3 collegehockey-led-scoreboard.py
+```
+
+The script tries to `import rgbmatrix` (the real hardware driver) first;
+since that's not installed on a regular computer, it automatically falls
+back to `RGBMatrixEmulator`. No flags or code changes needed to switch
+between the two -- it's detected automatically.
+
+With the default config above, the 64x32 display renders as colored blocks
+right in your terminal. Press `Ctrl+C` to stop it.
+
+## Optional: view it in a browser instead of the terminal
+
+Edit `emulator_config.json` and change:
+
+```json
+"display_adapter": "terminal"
+```
+
+to:
+
+```json
+"display_adapter": "browser"
+```
+
+Then run the script again and open `http://localhost:8888` in your browser
+(the port is configurable under the `"browser"` section of the same file).
+
+## Optional: set your favorite team
+
+Near the bottom of `collegehockey-led-scoreboard.py`, in the `__main__`
+block, three constants control which team gets its own board and highlight
+in the rankings scroll:
+
+```python
+FAVORITE_TEAM_ABBR = "MIA OH"        # char6 code, see getTeamData()
+FAVORITE_TEAM_SHORT = "MIA"          # short display abbreviation
+FAVORITE_TEAM_SCHOOL = "Miami (OH)"  # exact "School" name from the rankings API
+```
+
+Change these to any team already present in `getTeamData()`.
+
+## Updating later
+
+```bash
+git pull
+pip install -r requirements.txt   # picks up any dependency changes
+```
+
+## Troubleshooting
+
+- **"Resource deadlock avoided" error when a logo loads**: if your clone
+  lives in an iCloud Drive (or similar cloud-synced) folder, some of the
+  team logo PNGs under `assets/images/team logos/png/` may be
+  placeholder files that haven't actually downloaded to disk yet. Open the
+  folder in Finder and make sure "Download Now" has been used on it, or
+  copy the repo outside the synced folder.
+- **Nothing shows up in the terminal**: some terminals don't render the
+  emulator's block characters well. Try the browser adapter instead (see
+  above).

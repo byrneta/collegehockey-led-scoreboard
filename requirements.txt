@@ -1,18 +1,4 @@
-asn1crypto==0.24.0
-certifi==2018.8.24
-chardet==3.0.4
-cryptography==2.6.1
-entrypoints==0.3
-idna==2.6
-keyring==17.1.1
-keyrings.alt==3.1.1
-olefile==0.46
-Pillow==5.4.1
-PyGObject==3.30.4
-python-apt==1.8.4.3
-pyxdg==0.25
-requests==2.21.0
-SecretStorage==2.3.1
-six==1.12.0
-ssh-import-id==5.7
-urllib3==1.24.1
+# rgbmatrix is installed separately from the submodules/rpi-rgb-led-matrix
+# build (see README step 13) and is not a pip package.
+requests>=2.32.0,<3
+Pillow>=10.4.0,<13
