@@ -36,7 +36,7 @@ Forked from [rpi-led-nhl-scoreboard](https://github.com/gidger/rpi-led-nhl-score
 
 ## Hardware
 
-- Raspberry Pi (any model with a 40-pin GPIO header)
+- Raspberry Pi 3 or newer recommended (older models are underpowered for driving an LED matrix). Faster Pis, such as the Pi 4, often need a higher `gpio_slowdown` than the default of `2` if the panel isn't working correctly. (I have tested this with a Zero 2W)
 - 64x32 RGB LED matrix panel (HUB75)
 - [Adafruit RGB Matrix HAT or Bonnet](https://www.adafruit.com/product/2345) with a 5V power supply
 - MicroSD card
@@ -45,52 +45,37 @@ The matrix settings in `collegehockey-led-scoreboard.py` (`hardware_mapping = 'a
 
 ## Installation Instructions
 
-These instructions assume some basic knowledge of Unix and how to edit files via the command line.
+These instructions target **Raspberry Pi OS Lite (Trixie, Debian 13)** and assume some basic knowledge of Unix and editing files from the command line. Bookworm (Python 3.11) should work with the same steps. Bullseye and older are not supported, because the current LED matrix driver needs **Python 3.11 or later**.
 
-1. Flash an SD card with [Raspberry Pi OS Lite](https://www.raspberrypi.org/software/operating-systems/) on your personal computer.
+Usernames: the examples below assume the default user `pi`. If you chose a different username in step 1, replace `/home/pi` in the startup configs accordingly.
 
-   > **Tip:** [Raspberry Pi Imager](https://www.raspberrypi.com/software/) can preset Wi-Fi, SSH, hostname, and timezone while flashing. If you use it, you can skip steps 3, 4, and 6. On newer OS releases, `config.txt` is at `/boot/firmware/config.txt`.
+1. **Flash the SD card with [Raspberry Pi Imager](https://www.raspberrypi.com/software/).** Choose *Raspberry Pi OS Lite*, then use OS customisation to set the hostname, username and password, Wi-Fi network and country, time zone, and to **enable SSH**. (The old approach of adding `ssh` and `wpa_supplicant.conf` files to the boot partition no longer works on current Raspberry Pi OS releases.)
 
-2. Unplug and replug the SD card.
-
-3. Add an empty file named `ssh` to the boot directory on the SD card.
+2. **Boot the Pi and SSH in.** Insert the SD card, power on, and connect from your computer:
 
    ```
-   touch ssh
+   ssh pi@raspberrypi.local
    ```
 
-4. Add and configure `wpa_supplicant.conf` in the same directory. Set your network information and two-digit [country code](https://www.iban.com/country-codes).
-
-   ```
-   country=US
-   ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-   update_config=1
-
-   network={
-       ssid="NETWORK-NAME"
-       psk="NETWORK-PASSWORD"
-   }
-   ```
-
-5. Put the SD card in your Raspberry Pi. Boot up and SSH into it.
-
-6. Set location/time zone and a new password via [raspi-config](https://www.raspberrypi.org/documentation/configuration/raspi-config.md).
+3. **Confirm the time zone.** The scoreboard switches from last night's results to today's games at 12:00 PM local time, so the Pi's time zone matters. If you didn't set it in the Imager:
 
    ```
    sudo raspi-config
    ```
 
-7. Get the latest updates.
+   Then go to *Localisation Options* > *Timezone*.
+
+4. **Get the latest updates.**
 
    ```
    sudo apt-get update -y
    sudo apt-get upgrade -y
    ```
 
-8. Disable on-board sound (it conflicts with the matrix driver).
+5. **Disable on-board sound.** It conflicts with the LED matrix driver. First turn it off in the boot config:
 
    ```
-   sudo nano /boot/config.txt
+   sudo nano /boot/firmware/config.txt
    ```
 
    Edit the `dtparam` line to look like this:
@@ -99,54 +84,59 @@ These instructions assume some basic knowledge of Unix and how to edit files via
    dtparam=audio=off
    ```
 
-9. Disable Wi-Fi sleep.
+   Then blacklist the sound kernel module. The file must end in `.conf` and the line must start with the word `blacklist`:
 
    ```
-   sudo nano /etc/rc.local
+   echo "blacklist snd_bcm2835" | sudo tee /etc/modprobe.d/blacklist-rgb-matrix.conf
+   sudo update-initramfs -u
    ```
 
-   Above the line that says `exit 0`, add the following and save:
+6. **Disable Wi-Fi power saving** so the Pi doesn't drop off your network. Find your connection name, then turn power saving off for it:
 
    ```
-   /sbin/iw wlan0 set power_save off
+   nmcli connection show
+   sudo nmcli connection modify "YOUR-CONNECTION-NAME" 802-11-wireless.powersave 2
+   sudo nmcli connection up "YOUR-CONNECTION-NAME"
    ```
 
-10. Install pip3 and git.
+   <!-- TODO: verify on a real Trixie install. Raspberry Pi OS uses NetworkManager, so this replaces the old /etc/rc.local "iw wlan0 set power_save off" approach. Skip this step if the Pi is on Ethernet. -->
+
+7. **Install the build tools and Python packages the LED matrix driver needs.** `python3-pil` is required, not optional: it provides Pillow's `Imaging.h` header, which the driver's build compiles against.
+
+   ```
+   sudo apt-get install git python3-venv python3-dev python3-pil cython3 cmake build-essential -y
+   ```
+
+   <!-- TODO: verify the minimal package list on a clean install. python3-dev, python3-pil, and cython3 are what the matrix driver's docs list; cmake and build-essential are added because the bindings now build with CMake. -->
+
+8. **Clone this repository** to your home directory. `--recursive` pulls in the LED matrix driver.
+
+   ```
+   cd ~/
+   git clone --recursive https://github.com/byrneta/collegehockey-led-scoreboard.git
+   cd collegehockey-led-scoreboard
+   ```
+
+9. **Create a virtual environment and install everything into it.** Current Raspberry Pi OS blocks system-wide `pip install` (the "externally-managed-environment" error), so the scoreboard runs from a virtual environment. Create it with `--system-site-packages` so it uses the same `python3-pil` you installed in step 7. The driver reads Pillow's internal image data directly, so it should run against the same Pillow it was built against. The last command builds the LED matrix driver and can take a few minutes.
+
+   ```
+   python3 -m venv --system-site-packages .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   pip install ./submodules/rpi-rgb-led-matrix
+   ```
+
+   (`pip install -r requirements.txt` will see the system Pillow and won't install a second copy. If you see it downloading Pillow, stop and check that step 7 completed.)
+
+10. **[Set your favorite team](#choosing-your-favorite-team).**
+
+11. **Test it.** The LED matrix driver needs root, and `sudo` does not carry over your activated virtual environment, so run the venv's Python by its full path:
 
     ```
-    sudo apt-get install python3-pip git -y
+    sudo ~/collegehockey-led-scoreboard/.venv/bin/python collegehockey-led-scoreboard.py
     ```
 
-11. Clone this repository to your home directory (`--recursive` pulls in the LED matrix driver).
-
-    ```
-    cd ~/
-    git clone --recursive https://github.com/byrneta/collegehockey-led-scoreboard.git
-    ```
-
-12. Build and install the LED matrix Python package.
-
-    ```
-    cd ~/collegehockey-led-scoreboard/submodules/rpi-rgb-led-matrix
-    sudo apt-get update && sudo apt-get install python3-dev python3-pillow -y
-    make build-python PYTHON=$(which python3)
-    sudo make install-python PYTHON=$(which python3)
-    ```
-
-13. Install the remaining Python requirements.
-
-    ```
-    cd ~/collegehockey-led-scoreboard
-    pip3 install -r requirements.txt
-    ```
-
-14. [Set your favorite team](#choosing-your-favorite-team), then test it:
-
-    ```
-    sudo python3 collegehockey-led-scoreboard.py
-    ```
-
-    (`sudo` is required for the real matrix driver.) Press `Ctrl+C` to stop.
+    You should see the "Now Loading" screen, then the day's games (or the idle boards on days with none). Press `Ctrl+C` to stop.
 
 ## Configuration
 
@@ -176,6 +166,8 @@ These are all near the bottom of the `__main__` block:
 | `PREGAME_BUFFER` | `120` | How many seconds before the first start time to begin polling. |
 
 ## Auto Startup
+
+Both options below run the scoreboard with the virtual environment's Python (`.venv/bin/python`), for the same reason as step 11 above. Replace `/home/pi` if your username is different.
 
 ### Supervisor (Recommended)
 
@@ -208,13 +200,11 @@ Supervisor runs the scoreboard for you, restarts it if it crashes, and gives you
 
    ```
    [program:college-hockey-scoreboard]
-   command=sudo python3 collegehockey-led-scoreboard.py
+   command=sudo /home/pi/collegehockey-led-scoreboard/.venv/bin/python collegehockey-led-scoreboard.py
    directory=/home/pi/collegehockey-led-scoreboard
    autostart=true
    autorestart=true
    ```
-
-   Adjust `directory` if your username isn't `pi`.
 
 4. Reboot the Pi. The scoreboard should start on its own. To open the dashboard, browse to your Pi's IP address followed by `:9001` (for example `192.168.2.19:9001`). If you see the dashboard but no process, reboot and refresh.
 
@@ -234,13 +224,13 @@ From the dashboard you can start, restart, and stop the scoreboard. Click the pr
    n=0
    until [ $n -ge 10 ]
    do
-      sudo python3 collegehockey-led-scoreboard.py && break
+      sudo /home/pi/collegehockey-led-scoreboard/.venv/bin/python collegehockey-led-scoreboard.py && break
       n=$((n+1))
       sleep 10
    done
    ```
 
-   **Optional:** to have the scoreboard update itself from GitHub on every reboot, use this version instead. It's handy for a gift for a non-technical person, but it won't start anything until the Pi can reach GitHub.
+   **Optional:** to have the scoreboard update itself from GitHub on every reboot, use this version instead. It's handy for a gift for a non-technical person, but it won't start anything until the Pi can reach GitHub, and an update that changes `requirements.txt` won't be installed automatically.
 
    ```bash
    #!/bin/bash
@@ -256,7 +246,7 @@ From the dashboard you can start, restart, and stop the scoreboard. Click the pr
    n=0
    until [ $n -ge 10 ]
    do
-       sudo python3 collegehockey-led-scoreboard.py && break
+       sudo /home/pi/collegehockey-led-scoreboard/.venv/bin/python collegehockey-led-scoreboard.py && break
        n=$((n+1))
        sleep 10
    done
@@ -286,7 +276,7 @@ From the dashboard you can start, restart, and stop the scoreboard. Click the pr
 
 The fastest way to try or develop the scoreboard is on a regular computer (Mac, Linux, or Windows/WSL) using [RGBMatrixEmulator](https://github.com/ty-porter/RGBMatrixEmulator). The script tries to import the real `rgbmatrix` driver first and automatically falls back to the emulator if it isn't installed, so no flags or code changes are needed.
 
-Requires Python 3.9+, `git`, and `pip`.
+Requires Python 3.9+, `git`, and `pip`. (The Raspberry Pi install needs Python 3.11+ because of the LED matrix driver.)
 
 ```
 git clone https://github.com/byrneta/collegehockey-led-scoreboard.git
@@ -322,14 +312,19 @@ By default the 64x32 display renders as colored blocks in your terminal. Press `
 6. If the NCAA API can't be reached when the scoreboard first starts, it shows "No Games Today" and retries hourly.
 7. The favorite team is set by editing the script. A red pixel in the bottom-right corner means the most recent refresh failed.
 8. The NCAA API is a free, community-run service. Please don't shorten `REFRESH_INTERVAL` aggressively.
+9. On the Pi, Python 3.11 or later (Raspberry Pi OS Bookworm or newer) is required by the current LED matrix driver.
 
 ## Troubleshooting
 
-- **The scoreboard isn't showing anything:** check the Supervisor log (or `cron.log`) for errors. Confirm you're running with `sudo`, and that on-board sound is disabled (step 8).
-- **Panel flickers or shows noise:** try a higher `gpio_slowdown` in the `RGBMatrixOptions` block. See the [rpi-rgb-led-matrix troubleshooting guide](https://github.com/hzeller/rpi-rgb-led-matrix#troubleshooting).
+- **The scoreboard isn't showing anything:** check the Supervisor log (or `cron.log`) for errors. Confirm you're running with `sudo` and the venv's Python, and that on-board sound is disabled (step 5). If the driver reports that the sound module is loaded, the blacklist file from step 5 is missing or wasn't applied. Check with `lsmod | grep snd_bcm2835` after a reboot.
+- **`ModuleNotFoundError: rgbmatrix` (or the script starts in emulator mode) on the Pi:** the script is running under the wrong Python. `sudo python3 ...` doesn't see the virtual environment. Use `sudo ~/collegehockey-led-scoreboard/.venv/bin/python ...` as in step 11, and make sure you ran `pip install ./submodules/rpi-rgb-led-matrix` inside the activated venv.
+- **`error: externally-managed-environment` from `pip`:** you're installing outside the virtual environment. Run `source ~/collegehockey-led-scoreboard/.venv/bin/activate` first.
+- **`fatal error: Imaging.h: No such file or directory` while building the driver:** Pillow's C header is missing. Install it with `sudo apt-get install python3-pil`. Then recreate the venv with `--system-site-packages` (`deactivate; rm -rf .venv; python3 -m venv --system-site-packages .venv`), and rerun steps 9 onward. Pillow installed from `pip` doesn't include this header, and a pip-installed copy inside the venv would hide the system one.
+- **The driver build fails (other errors):** confirm the packages in step 7 are installed and that the submodule was cloned (`ls submodules/rpi-rgb-led-matrix` should not be empty; if it is, run `git submodule update --init`).
+- **Panel flickers or shows noise:** try a higher `gpio_slowdown` in the `RGBMatrixOptions` block (fast Pis often need more). Upstream also has an [optimized kernel guide](https://github.com/hzeller/rpi-rgb-led-matrix/tree/master/optimized-kernel) for stubborn flicker, and a general [troubleshooting section](https://github.com/hzeller/rpi-rgb-led-matrix#troubleshooting).
 - **"Resource deadlock avoided" when a logo loads (emulator):** if your clone lives in iCloud Drive or another cloud-synced folder, some logo PNGs under `assets/images/team logos/png/` may be undownloaded placeholders. Use "Download Now" on the folder, or copy the repo outside the synced folder.
 - **Nothing shows in the terminal (emulator):** some terminals don't render the block characters well. Switch to the browser adapter (see above).
-- **Updating:** `git pull`, then `pip3 install -r requirements.txt`.
+- **Updating:** run `git pull --recurse-submodules`, then, with the venv activated, `pip install -r requirements.txt`. If the matrix driver was updated, also rerun `pip install ./submodules/rpi-rgb-led-matrix`.
 
 ## Credits
 
